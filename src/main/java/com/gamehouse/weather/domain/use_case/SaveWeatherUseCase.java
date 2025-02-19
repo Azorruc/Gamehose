@@ -5,6 +5,7 @@ import com.gamehouse.weather.domain.repository.WeatherDataRepository;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -12,7 +13,9 @@ import org.springframework.stereotype.Service;
 @Data
 @AllArgsConstructor
 public class SaveWeatherUseCase {
-    private WeatherDataRepository weatherDataRepository;
+
+    @Autowired
+    private final WeatherDataRepository weatherDataRepository;
 
     public WeatherData execute(WeatherData weatherData) {
         return weatherDataRepository.save(weatherData);

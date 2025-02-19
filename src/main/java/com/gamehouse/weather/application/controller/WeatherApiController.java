@@ -21,9 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/weather")
 public class WeatherApiController implements WeatherApi {
 
-    private SaveWeatherUseCase saveWeatherUseCase;
+    private final SaveWeatherUseCase saveWeatherUseCase;
 
-    private WeatherDataMapper weatherDataMapper;
+    private final WeatherDataMapper weatherDataMapper;
 
     @Override
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
