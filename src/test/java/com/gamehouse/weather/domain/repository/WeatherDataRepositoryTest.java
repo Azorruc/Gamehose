@@ -10,6 +10,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -42,5 +43,33 @@ public class WeatherDataRepositoryTest {
         assertEquals(BigDecimal.valueOf(25.00), results.get(0).getTemperature());
         assertEquals(BigDecimal.valueOf(50.00), results.get(0).getHumidity());
         assertEquals(BigDecimal.valueOf(10.00), results.get(0).getWindSpeed());
+    }
+
+    @Test
+    public void when_data_exists_data_returned() {
+        WeatherData weatherData = WeatherData.builder()
+                .station("CBD")
+                .localTime(LocalDateTime.of(2025, 2, 18, 15, 0, 0))
+                .receptionTime(LocalDateTime.of(2025, 2, 18, 15, 2, 0))
+                .temperature(BigDecimal.valueOf(25.00))
+                .humidity(BigDecimal.valueOf(50.00))
+                .windSpeed(BigDecimal.valueOf(10.00))
+                .build();
+
+        WeatherData weatherData2 = WeatherData.builder()
+                .station("CBD")
+                .localTime(LocalDateTime.of(2025, 2, 18, 16, 0, 0))
+                .receptionTime(LocalDateTime.of(2025, 2, 18, 16, 2, 0))
+                .temperature(BigDecimal.valueOf(25.00))
+                .humidity(BigDecimal.valueOf(50.00))
+                .windSpeed(BigDecimal.valueOf(10.00))
+                .build();
+
+        weatherDataRepository.save(weatherData);
+        weatherDataRepository.save(weatherData2);
+
+        Optional<WeatherData> result = weatherDataRepository.findTopByStationOrderByReceptionTimeDesc("CBD");
+        assert(result.isPresent());
+        assertEquals(weatherData2, result.get());
     }
 }
