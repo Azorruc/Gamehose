@@ -50,7 +50,8 @@ public class WeatherApiController implements WeatherApi {
     }
 
     @Override
-    public ResponseEntity<MeasuredWeatherResponse> getWeatherByRange(String stationCode, String startDate, String endDate) {
+    @GetMapping(value = "/{stationCode}/range")
+    public ResponseEntity<MeasuredWeatherResponse> getWeatherByRange(@PathVariable("stationCode") String stationCode, @RequestParam String startDate, @RequestParam String endDate) {
         Optional<MeasuredWeatherResponse> result = getMeasuredWeatherUseCase.execute(stationCode, LocalDateTime.parse(startDate), LocalDateTime.parse(endDate));
         return result.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
