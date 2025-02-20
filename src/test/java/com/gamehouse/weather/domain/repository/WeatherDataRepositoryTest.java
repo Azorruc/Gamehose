@@ -72,4 +72,31 @@ public class WeatherDataRepositoryTest {
         assert(result.isPresent());
         assertEquals(weatherData2, result.get());
     }
+
+    @Test
+    public void when_find_by_range_data_returned() {
+        WeatherData weatherData = WeatherData.builder()
+                .station("CBD")
+                .localTime(LocalDateTime.of(2025, 2, 18, 15, 0, 0))
+                .receptionTime(LocalDateTime.of(2025, 2, 18, 15, 2, 0))
+                .temperature(BigDecimal.valueOf(25.00))
+                .humidity(BigDecimal.valueOf(50.00))
+                .windSpeed(BigDecimal.valueOf(10.00))
+                .build();
+
+        WeatherData weatherData2 = WeatherData.builder()
+                .station("CBD")
+                .localTime(LocalDateTime.of(2025, 2, 18, 16, 0, 0))
+                .receptionTime(LocalDateTime.of(2025, 2, 18, 16, 2, 0))
+                .temperature(BigDecimal.valueOf(25.00))
+                .humidity(BigDecimal.valueOf(50.00))
+                .windSpeed(BigDecimal.valueOf(10.00))
+                .build();
+
+        weatherDataRepository.save(weatherData);
+        weatherDataRepository.save(weatherData2);
+
+        List<WeatherData> results = weatherDataRepository.findByStationAndReceptionTimeBetween("CBD", LocalDateTime.of(2025, 1, 18, 15, 0, 0), LocalDateTime.of(2025, 3, 18, 15, 2, 0));
+        assert(results.size() == 2);
+    }
 }

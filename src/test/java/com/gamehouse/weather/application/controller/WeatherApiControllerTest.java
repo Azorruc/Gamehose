@@ -4,8 +4,11 @@ import com.gamehouse.weather.application.controller.request.WeatherCreateRequest
 import com.gamehouse.weather.application.controller.request.WeatherDataMapper;
 import com.gamehouse.weather.application.controller.response.LastWeatherResponse;
 import com.gamehouse.weather.application.controller.response.LastWeatherResponseMapper;
+import com.gamehouse.weather.application.controller.response.MeasuredData;
+import com.gamehouse.weather.application.controller.response.MeasuredWeatherResponse;
 import com.gamehouse.weather.domain.entity.WeatherData;
 import com.gamehouse.weather.domain.use_case.GetLastUseCase;
+import com.gamehouse.weather.domain.use_case.GetMeasuredWeatherUseCase;
 import com.gamehouse.weather.domain.use_case.SaveWeatherUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,9 +45,12 @@ public class WeatherApiControllerTest {
     @Mock
     private LastWeatherResponseMapper lastWeatherResponseMapper;
 
+    @Mock
+    private GetMeasuredWeatherUseCase getMeasuredWeatherUseCase;
+
     @BeforeEach
     public void setUp() {
-        this.weatherApiController = new WeatherApiController(saveWeatherUseCase, weatherDataMapper, lastWeatherResponseMapper, getLastUseCase);
+        this.weatherApiController = new WeatherApiController(saveWeatherUseCase, weatherDataMapper, lastWeatherResponseMapper, getLastUseCase, getMeasuredWeatherUseCase);
     }
 
     @Test
@@ -166,5 +172,38 @@ public class WeatherApiControllerTest {
         ResponseEntity<LastWeatherResponse> response = weatherApiController.getLastWeather("CBD");
         assert(response.getStatusCode().is4xxClientError());
 
+    }
+    @Test
+    public void when_get_by_range_use_case_is_called() {
+        weatherApiController.getWeatherByRange("ABC", "2025-02-18T00:00", "2025-02-19T00:00");
+        verify(getMeasuredWeatherUseCase).execute("ABC", LocalDateTime.parse("2025-02-18T00:00"), LocalDateTime.parse("2025-02-19T00:00"));
+    }
+
+    @Test
+    public void when_get_by_range_not_found_404_is_returned() {
+        doReturn(Optional.empty()).when(getMeasuredWeatherUseCase).execute(any(), any(), any());
+        ResponseEntity< MeasuredWeatherResponse> response = weatherApiController.getWeatherByRange("ABC", "2025-02-18T00:00", "2025-02-19T00:00");
+        assertEquals(404, response.getStatusCode().value());
+    }
+
+    @Test
+    public void when_get_by_range_founded_response_is_returned() {
+        MeasuredWeatherResponse response = new MeasuredWeatherResponse(
+                new MeasuredData(BigDecimal.valueOf(15.00), BigDecimal.valueOf(30.00), BigDecimal.valueOf(20.00)),
+                new MeasuredData(BigDecimal.valueOf(100.00), BigDecimal.valueOf(150.00), BigDecimal.valueOf(50.00)),
+                new MeasuredData(BigDecimal.valueOf(60.00), BigDecimal.valueOf(100.00), BigDecimal.valueOf(20.00))
+        );
+        doReturn(Optional.of(response)).when(getMeasuredWeatherUseCase).execute(any(), any(), any());
+        ResponseEntity<MeasuredWeatherResponse> result = weatherApiController.getWeatherByRange("ABC", "2025-02-18T00:00", "2025-02-19T00:00");
+        assert(result.getStatusCode().is2xxSuccessful());
+        assertEquals(BigDecimal.valueOf(15.00), result.getBody().getTemperature().getAvg());
+        assertEquals(BigDecimal.valueOf(30.00), result.getBody().getTemperature().getMax());
+        assertEquals(BigDecimal.valueOf(20.00), result.getBody().getTemperature().getMin());
+        assertEquals(BigDecimal.valueOf(100.00), result.getBody().getHumidity().getAvg());
+        assertEquals(BigDecimal.valueOf(150.00), result.getBody().getHumidity().getMax());
+        assertEquals(BigDecimal.valueOf(50.00), result.getBody().getHumidity().getMin());
+        assertEquals(BigDecimal.valueOf(60.00), result.getBody().getWindSpeed().getAvg());
+        assertEquals(BigDecimal.valueOf(100.00), result.getBody().getWindSpeed().getMax());
+        assertEquals(BigDecimal.valueOf(20.00), result.getBody().getWindSpeed().getMin());
     }
 }

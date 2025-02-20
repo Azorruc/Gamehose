@@ -7,6 +7,7 @@ import com.gamehouse.weather.application.controller.response.LastWeatherResponse
 import com.gamehouse.weather.application.controller.response.MeasuredWeatherResponse;
 import com.gamehouse.weather.domain.entity.WeatherData;
 import com.gamehouse.weather.domain.use_case.GetLastUseCase;
+import com.gamehouse.weather.domain.use_case.GetMeasuredWeatherUseCase;
 import com.gamehouse.weather.domain.use_case.SaveWeatherUseCase;
 import com.gamehouse.weather.exception.ResourceCreateException;
 import jakarta.validation.Valid;
@@ -15,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -29,6 +31,8 @@ public class WeatherApiController implements WeatherApi {
     private final LastWeatherResponseMapper lastWeatherResponseMapper;
 
     private final GetLastUseCase getLastUseCase;
+
+    private final GetMeasuredWeatherUseCase getMeasuredWeatherUseCase;
 
     @Override
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -47,6 +51,7 @@ public class WeatherApiController implements WeatherApi {
 
     @Override
     public ResponseEntity<MeasuredWeatherResponse> getWeatherByRange(String stationCode, String startDate, String endDate) {
-        return null;
+        Optional<MeasuredWeatherResponse> result = getMeasuredWeatherUseCase.execute(stationCode, LocalDateTime.parse(startDate), LocalDateTime.parse(endDate));
+        return result.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
